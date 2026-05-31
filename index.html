@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EquiControl — Beheer je paard met passie</title>
+  <meta name="description" content="EquiControl is dé app voor elke paardenliefhebber. Beheer trainingen, gezondheid en planning van je paard op één plek."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green-dark:   #0a1a0a;
+      --green-deep:   #0f2410;
+      --green-mid:    #1a3d1a;
+      --green-accent: #3a7d3a;
+      --green-bright: #5cb85c;
+      --green-light:  #a8e6a8;
+      --gold:         #c9a84c;
+      --white:        #f5f0e8;
+      --grey:         #8a9a8a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--green-dark);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 4rem;
+      background: rgba(10,26,10,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(90,180,90,0.1);
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 1px;
+    }
+
+    .nav-logo span { color: var(--green-bright); }
+
+    nav ul {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    nav ul a {
+      color: var(--grey);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+
+    nav ul a:hover { color: var(--green-bright); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(58,125,58,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 80%, rgba(90,180,90,0.08) 0%, transparent 60%);
+      z-index: 0;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(58,125,58,0.15);
+      border: 1px solid rgba(90,180,90,0.25);
+      border-radius: 50px;
+      padding: 0.4rem 1.2rem;
+      font-size: 0.8rem;
+      color: var(--green-light);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green-bright);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.4); }
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--green-bright);
+      display: block;
+    }
+
+    .hero-sub {
+      margin-top: 1.5rem;
+      font-size: 1.15rem;
+      color: var(--grey);
+      max-width: 500px;
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .hero-cta {
+      margin-top: 2.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--green-bright);
+      color: var(--green-dark);
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      transition: all 0.25s;
+      box-shadow: 0 0 30px rgba(92,184,92,0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(92,184,92,0.5);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: transparent;
+      color: var(--white);
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: all 0.25s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--green-bright);
+      color: var(--green-bright);
+    }
+
+    /* Phone mockup */
+    .hero-phone {
+      margin-top: 4rem;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    .phone-frame {
+      width: 260px;
+      height: 520px;
+      border-radius: 40px;
+      background: var(--green-deep);
+      border: 2px solid rgba(90,180,90,0.2);
+      box-shadow:
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(255,255,255,0.03),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      overflow: hidden;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #0f2410 0%, #1a3d1a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .phone-app-icon {
+      width: 70px; height: 70px;
+      border-radius: 18px;
+      background: var(--green-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--white);
+      border: 1px solid rgba(90,180,90,0.3);
+    }
+
+    .phone-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+    }
+
+    .phone-subtitle {
+      font-size: 0.75rem;
+      color: var(--grey);
+      text-align: center;
+    }
+
+    .phone-card {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(90,180,90,0.15);
+      border-radius: 14px;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .phone-card-dot {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(92,184,92,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .phone-card-text { font-size: 0.75rem; color: var(--white); }
+    .phone-card-sub { font-size: 0.65rem; color: var(--grey); margin-top: 2px; }
+
+    /* ── FEATURES ── */
+    #functies {
+      padding: 8rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--green-bright);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      color: var(--grey);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 500px;
+      margin-bottom: 4rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(90,180,90,0.1);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(92,184,92,0.3), transparent);
+    }
+
+    .feature-card:hover {
+      border-color: rgba(90,180,90,0.3);
+      transform: translateY(-4px);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: rgba(58,125,58,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .feature-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .feature-desc {
+      color: var(--grey);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* ── STATS ── */
+    .stats-bar {
+      background: var(--green-deep);
+      border-top: 1px solid rgba(90,180,90,0.1);
+      border-bottom: 1px solid rgba(90,180,90,0.1);
+      padding: 3rem 2rem;
+    }
+
+    .stats-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--green-bright);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--grey);
+      margin-top: 0.4rem;
+    }
+
+    /* ── DOWNLOAD ── */
+    #download {
+      padding: 8rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #download::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(58,125,58,0.12) 0%, transparent 70%);
+    }
+
+    .download-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 1rem;
+    }
+
+    .download-sub {
+      color: var(--grey);
+      font-size: 1rem;
+      margin-bottom: 2.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: var(--white);
+      color: var(--green-dark);
+      padding: 0.9rem 2rem;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.25s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .store-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .store-btn .store-icon { font-size: 1.5rem; }
+    .store-btn .store-text-small { font-size: 0.65rem; font-weight: 400; display: block; }
+    .store-btn .store-text-big { font-size: 1rem; font-weight: 700; display: block; line-height: 1; }
+
+    .coming-soon-tag {
+      display: inline-block;
+      background: rgba(201,168,76,0.15);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold);
+      font-size: 0.75rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 50px;
+      margin-left: 1rem;
+      vertical-align: middle;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid rgba(90,180,90,0.1);
+      padding: 3rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .footer-logo span { color: var(--green-bright); }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .footer-links a {
+      color: var(--grey);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--green-bright); }
+
+    .footer-copy {
+      color: var(--grey);
+      font-size: 0.8rem;
+    }
+
+    /* ── PRIVACY PAGE ── */
+    .legal-page {
+      display: none;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 10rem 2rem 6rem;
+    }
+
+    .legal-page h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .legal-page .updated {
+      color: var(--grey);
+      font-size: 0.85rem;
+      margin-bottom: 3rem;
+    }
+
+    .legal-page h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 2rem 0 0.8rem;
+      color: var(--green-light);
+    }
+
+    .legal-page p, .legal-page li {
+      color: var(--grey);
+      font-size: 0.95rem;
+      line-height: 1.8;
+      margin-bottom: 0.5rem;
+    }
+
+    .legal-page ul { padding-left: 1.5rem; }
+
+    /* ── SUPPORT PAGE ── */
+    .faq-item {
+      border-bottom: 1px solid rgba(90,180,90,0.1);
+      padding: 1.5rem 0;
+    }
+
+    .faq-q {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      color: var(--white);
+    }
+
+    .faq-a {
+      color: var(--grey);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .contact-box {
+      margin-top: 3rem;
+      background: rgba(58,125,58,0.1);
+      border: 1px solid rgba(90,180,90,0.2);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .contact-box h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .contact-box p { color: var(--grey); margin-bottom: 1.5rem; }
+
+    .contact-box a {
+      color: var(--green-bright);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      nav ul { display: none; }
+      footer { flex-direction: column; text-align: center; padding: 2rem; }
+      .stats-inner { grid-template-columns: 1fr; gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Equi<span>Control</span></div>
+  <ul>
+    <li><a href="#functies">Functies</a></li>
+    <li><a href="#download">Download</a></li>
+    <li><a href="#" onclick="showPage('support')">Support</a></li>
+    <li><a href="#" onclick="showPage('privacy')">Privacy</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN SITE -->
+<div id="main-site">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-badge">Nieuw — Versie 1.0 beschikbaar</div>
+    <h1>Beheer je paard<em>met passie</em></h1>
+    <p class="hero-sub">EquiControl is dé app voor elke paardenliefhebber. Trainingen, gezondheid en planning altijd bij de hand.</p>
+    <div class="hero-cta">
+      <a href="#download" class="btn-primary">
+        <span>🍎</span> Download voor iOS
+      </a>
+      <a href="#functies" class="btn-secondary">
+        Bekijk functies →
+      </a>
+    </div>
+
+    <div class="hero-phone">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="phone-app-icon">EC</div>
+          <div class="phone-title">Hoi, Anna! 👋</div>
+          <div class="phone-subtitle">Hier zijn je paarden voor vandaag</div>
+          <div class="phone-card">
+            <div class="phone-card-dot">🐴</div>
+            <div>
+              <div class="phone-card-text">Bella — KWPN • 12 jaar</div>
+              <div class="phone-card-sub">4x/week · Morgen: Hoefsmid</div>
+            </div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-card-dot">📊</div>
+            <div>
+              <div class="phone-card-text">Hartslag: 38 bpm · 540 kg</div>
+              <div class="phone-card-sub">Status: Gezond ✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-bar reveal">
+    <div class="stats-inner">
+      <div>
+        <div class="stat-num">4+</div>
+        <div class="stat-label">Talen ondersteund</div>
+      </div>
+      <div>
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Paarden te beheren</div>
+      </div>
+      <div>
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Gratis te starten</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="functies">
+    <div class="section-label">Functies</div>
+    <h2 class="section-title">Alles voor jouw paard,<br>op één plek</h2>
+    <p class="section-sub">Van dagelijkse trainingen tot medische dossiers — EquiControl houdt alles bij zodat jij je kunt focussen op je paard.</p>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🐴</div>
+        <div class="feature-title">Paardenbeheer</div>
+        <div class="feature-desc">Voeg al je paarden toe met ras, leeftijd, gewicht en gezondheidsstatus. Alles in één overzicht.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🏇</div>
+        <div class="feature-title">Training loggen</div>
+        <div class="feature-desc">Leg rijden, grondwerk, longeren en wedstrijden vast. Bouw een compleet trainingsoverzicht per paard.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Gezondheidsdata</div>
+        <div class="feature-desc">Monitor hartslag, gewicht en stokmaat. Spot afwijkingen op tijd en houd je paard gezond.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📅</div>
+        <div class="feature-title">Kalender & Planning</div>
+        <div class="feature-desc">Plan hoefsmidbezoeken, vaccinaties en trainingen. Mis nooit meer een belangrijke afspraak.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📋</div>
+        <div class="feature-title">Medisch dossier</div>
+        <div class="feature-desc">Bewaar het volledige medische dossier digitaal. Vaccinaties, behandelingen en notities altijd beschikbaar.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🌍</div>
+        <div class="feature-title">Meertalig</div>
+        <div class="feature-desc">Beschikbaar in Nederlands, Engels, Duits en Frans. Voor iedereen in de paardensport.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section id="download">
+    <p class="download-sub">Beschikbaar in de App Store</p>
+    <h2 class="download-title">Klaar om te beginnen?<br>Download EquiControl</h2>
+    <p class="download-sub">Gratis te downloaden. Geen creditcard nodig.</p>
+    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; position:relative; z-index:1;">
+      <a href="#" class="store-btn">
+        <span class="store-icon">🍎</span>
+        <span>
+          <span class="store-text-small">Download in de</span>
+          <span class="store-text-big">App Store</span>
+        </span>
+        <span class="coming-soon-tag">Binnenkort</span>
+      </a>
+    </div>
+  </section>
+
+</div><!-- /main-site -->
+
+<!-- PRIVACY PAGE -->
+<div id="privacy-page" class="legal-page">
+  <h2>Privacybeleid</h2>
+  <p class="updated">Laatst bijgewerkt: mei 2026</p>
+
+  <h3>1. Wie zijn wij</h3>
+  <p>EquiControl is een product van HBS CV, gevestigd in Nederland. Wij bieden een mobiele applicatie aan voor het beheren van paarden en gerelateerde activiteiten. Je kunt ons bereiken via support@equicontrol.app.</p>
+
+  <h3>2. Welke gegevens verzamelen wij</h3>
+  <p>Wij verzamelen de volgende gegevens:</p>
+  <ul>
+    <li>Naam en e-mailadres (voor je account)</li>
+    <li>Gegevens over je paarden (naam, ras, leeftijd, gezondheidsdata)</li>
+    <li>Trainings- en activiteitslogs die jij invoert</li>
+    <li>Technische gegevens (apparaattype, OS-versie) voor probleemoplossing</li>
+  </ul>
+
+  <h3>3. Waarvoor gebruiken wij je gegevens</h3>
+  <ul>
+    <li>Om de app te laten werken en je account te beheren</li>
+    <li>Om je paardgegevens op te slaan en te synchroniseren</li>
+    <li>Om de app te verbeteren op basis van gebruik</li>
+    <li>Om je te informeren over belangrijke updates</li>
+  </ul>
+
+  <h3>4. Delen wij gegevens met derden</h3>
+  <p>Wij verkopen nooit jouw persoonlijke gegevens. Wij maken gebruik van de volgende diensten:</p>
+  <ul>
+    <li>Firebase (Google) — voor opslag en authenticatie</li>
+    <li>Stripe — voor betalingen (alleen betalingsgegevens)</li>
+  </ul>
+
+  <h3>5. Beveiliging</h3>
+  <p>Alle gegevens worden versleuteld opgeslagen via Firebase. Verbindingen verlopen altijd via HTTPS.</p>
+
+  <h3>6. Jouw rechten</h3>
+  <p>Je hebt het recht om je gegevens in te zien, te corrigeren of te laten verwijderen. Stuur een e-mail naar support@equicontrol.app.</p>
+
+  <h3>7. Contact</h3>
+  <p>Vragen over dit privacybeleid? Neem contact op via <a href="mailto:support@equicontrol.app" style="color:var(--green-bright)">support@equicontrol.app</a></p>
+
+  <br/>
+  <a href="#" onclick="showPage('main')" class="btn-secondary" style="display:inline-flex">← Terug naar home</a>
+</div>
+
+<!-- SUPPORT PAGE -->
+<div id="support-page" class="legal-page">
+  <h2>Support</h2>
+  <p class="updated">Heb je een vraag of probleem? We helpen je graag.</p>
+
+  <div class="faq-item">
+    <div class="faq-q">Hoe voeg ik een paard toe?</div>
+    <div class="faq-a">Ga naar het dashboard en tik op "Nieuw Paard". Vul de gegevens in en sla op. Je paard verschijnt direct in je overzicht.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Kan ik meerdere paarden beheren?</div>
+    <div class="faq-a">Ja, met het gratis account kun je 1 paard beheren. Met een Pro abonnement beheer je tot 5 paarden.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Is mijn data veilig?</div>
+    <div class="faq-a">Ja. Alle gegevens worden versleuteld opgeslagen via Google Firebase. Wij verkopen nooit jouw gegevens aan derden.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Hoe annuleer ik mijn abonnement?</div>
+    <div class="faq-a">Ga in de iPhone naar Instellingen → Apple ID → Abonnementen → EquiControl → Annuleer abonnement.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">De app werkt niet goed, wat nu?</div>
+    <div class="faq-a">Probeer eerst de app te herstarten. Als het probleem blijft, neem dan contact met ons op via het onderstaande e-mailadres.</div>
+  </div>
+
+  <div class="contact-box">
+    <h3>Nog vragen?</h3>
+    <p>Ons team helpt je binnen 24 uur.</p>
+    <a href="mailto:support@equicontrol.app">support@equicontrol.app</a>
+  </div>
+
+  <br/>
+  <a href="#" onclick="showPage('main')" class="btn-secondary" style="display:inline-flex; margin-top:1rem">← Terug naar home</a>
+</div>
+
+<!-- FOOTER -->
+<footer id="site-footer">
+  <div class="footer-logo">Equi<span>Control</span></div>
+  <ul class="footer-links">
+    <li><a href="#" onclick="showPage('privacy')">Privacybeleid</a></li>
+    <li><a href="#" onclick="showPage('support')">Support</a></li>
+    <li><a href="mailto:support@equicontrol.app">Contact</a></li>
+  </ul>
+  <div class="footer-copy">© 2026 HBS CV — equicontrol.app</div>
+</footer>
+
+<script>
+  // Page switching
+  function showPage(page) {
+    document.getElementById('main-site').style.display = page === 'main' ? 'block' : 'none';
+    document.getElementById('privacy-page').style.display = page === 'privacy' ? 'block' : 'none';
+    document.getElementById('support-page').style.display = page === 'support' ? 'block' : 'none';
+    window.scrollTo(0, 0);
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
