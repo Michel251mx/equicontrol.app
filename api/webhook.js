@@ -4,9 +4,12 @@ const admin = require('firebase-admin');
 const mollie = createMollieClient({ apiKey: process.env.MOLLIE_API_KEY });
 
 if (!admin.apps.length) {
-  const serviceAccount = require('../serviceAccount.json');
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    }),
   });
 }
 
